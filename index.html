@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CIPHER LAB — DIGITAL MINDS 05</title>
+<meta name="description" content="Voir une menace. Comprendre la défense. Laboratoire de simulation du livre DIGITAL MINDS 05 — CIPHER. Aucune cible réelle, tout est fictif.">
+<style>
+:root{
+  --bg:#071612; --bg2:#0B241B; --g:#45D58A; --g-deep:#146B49; --g-light:#8EF0B6;
+  --r:#E54848; --r-deep:#782626; --tx:#F2F4F1; --gr:#A9B2AD; --line:rgba(142,240,182,.16);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:Inter,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);line-height:1.55;
+  background-image:radial-gradient(900px 500px at 80% -10%,rgba(69,213,138,.07),transparent 60%),radial-gradient(700px 400px at 0% 100%,rgba(20,107,73,.12),transparent 60%);
+  min-height:100vh}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+header{padding:34px 0 18px;text-align:center}
+.brand{letter-spacing:.38em;font-size:.72rem;color:var(--g);text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:14px}
+.brand::before,.brand::after{content:"";width:46px;height:1px;background:var(--g-deep)}
+h1{margin:12px 0 6px;font-size:clamp(2rem,6vw,3.2rem);letter-spacing:.06em;font-weight:700}
+h1 span{color:var(--g)}
+.tag{color:var(--gr);margin:0 auto;max-width:560px}
+.loop{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:22px 0 4px;padding:0;list-style:none;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase}
+.loop li{padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:var(--gr)}
+.loop li.on{border-color:var(--g);color:var(--g-light);background:rgba(69,213,138,.08)}
+nav.sc{display:flex;gap:8px;overflow-x:auto;padding:14px 0;scrollbar-width:thin;margin-top:8px}
+nav.sc button{flex:0 0 auto;background:transparent;border:1px solid var(--line);color:var(--gr);padding:9px 14px;border-radius:10px;cursor:pointer;font:inherit;font-size:.85rem}
+nav.sc button b{color:var(--g);margin-right:6px;font-family:var(--mono)}
+nav.sc button[aria-current="true"]{border-color:var(--g);color:var(--tx);background:var(--bg2)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--g-light);outline-offset:2px}
+main{display:grid;grid-template-columns:300px 1fr;gap:20px;padding-bottom:40px}
+@media(max-width:860px){main{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--bg2),rgba(11,36,27,.6));border:1px solid var(--line);border-radius:16px;padding:20px}
+.card h2{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gr);margin:0 0 14px;font-weight:600}
+/* couches */
+.layers{display:flex;flex-direction:column;gap:6px}
+.layer{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.9rem;color:var(--gr);transition:all .35s}
+.layer small{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
+.layer.entry{border-color:var(--g-light);color:var(--tx)}
+.layer.pass{border-color:var(--r-deep);color:var(--tx);background:rgba(120,38,38,.18)}
+.layer.hit{border-color:var(--r);color:var(--tx);background:rgba(229,72,72,.16)}
+.layer.hit small{color:var(--r)}
+.layer.stop{border-color:var(--g);color:var(--tx);background:rgba(69,213,138,.14)}
+.layer.stop small{color:var(--g-light)}
+.layer .seen::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--g-light);box-shadow:0 0 8px var(--g-light);margin-right:6px}
+.legend{margin-top:16px;display:grid;gap:6px;font-size:.78rem;color:var(--gr)}
+.legend span{display:flex;gap:8px;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+/* scénario */
+.kick{color:var(--g);font-family:var(--mono);font-size:.78rem;letter-spacing:.08em}
+.sc-title{font-size:1.5rem;margin:4px 0 6px;line-height:1.25}
+.sc-q{color:var(--gr);margin:0 0 4px}
+fieldset{border:0;padding:0;margin:18px 0 0}
+legend{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gr);padding:0;margin-bottom:10px}
+.opt{display:block;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border-color .2s,background .2s}
+.opt:hover{border-color:var(--g-deep)}
+.opt input{accent-color:var(--g);margin-right:10px}
+.opt.sel{border-color:var(--g);background:rgba(69,213,138,.07)}
+.opt b{font-weight:600}
+.opt small{display:block;color:var(--gr);margin:4px 0 0 26px}
+.go{margin-top:6px;background:var(--g);color:#04130d;border:0;padding:12px 22px;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;letter-spacing:.04em}
+.go:hover{background:var(--g-light)}
+.go[disabled]{opacity:.5;cursor:default}
+.noquiz{margin:14px 0 0;padding:10px 14px;border-left:3px solid var(--g);background:rgba(69,213,138,.06);color:var(--g-light);border-radius:0 10px 10px 0;font-size:.92rem}
+.path{margin:2px 0 0;font-size:.75rem;color:var(--gr);letter-spacing:.02em;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center}
+.path a{color:var(--gr);text-decoration:none;border-bottom:1px dotted var(--g-deep)}
+.path a:hover,.path a[aria-current="true"]{color:var(--g-light)}
+.path i{font-style:normal;color:var(--g-deep)}
+.verdict{display:flex;flex-wrap:wrap;gap:8px}
+.legend h3{margin:10px 0 2px;font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gr);font-weight:600}
+.legend p{margin:8px 0 0;font-size:.74rem;line-height:1.45}
+/* timeline */
+.tl{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.tl li{position:relative;padding:0 0 14px 20px;opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+.tl li.show{opacity:1;transform:none}
+.tl li::before{content:"";position:absolute;left:-5px;top:7px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:2px solid var(--g-deep)}
+.tl li.ctrl::before{border-color:var(--g)}
+.tl li.bad::before{border-color:var(--r)}
+.tl .k{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gr)}
+.tl .t{display:block}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;font-weight:700;letter-spacing:.08em;font-size:.8rem;text-transform:uppercase;margin:6px 0 0}
+.badge small{font-weight:500;letter-spacing:.14em;opacity:.8;font-size:.66rem}
+.badge.protege{background:rgba(69,213,138,.15);color:var(--g);border:1px solid var(--g)}
+.badge.d0{background:transparent;color:var(--r);border:1px dashed var(--r)}
+.badge.d1{background:transparent;color:var(--g-light);border:1px dashed var(--g-light)}
+.badge.d2{background:transparent;color:var(--g-light);border:1px solid var(--g-light)}
+.badge.expose{background:transparent;color:var(--r);border:1px dashed var(--r)}
+.badge.compromis{background:rgba(229,72,72,.16);color:var(--r);border:1px solid var(--r)}
+.hide{display:none}
+.out{margin-top:6px}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+@media(max-width:560px){.cmp{grid-template-columns:1fr}}
+.cmp>div{border:1px solid var(--line);border-radius:12px;padding:12px;font-size:.88rem}
+.cmp h3{margin:0 0 6px;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gr)}
+.cmp p{margin:4px 0;color:var(--gr)} .cmp p b{color:var(--tx);font-weight:600}
+.lesson{border-left:3px solid var(--g);padding:4px 0 4px 14px;margin:12px 0}
+.lesson em{display:block;color:var(--g-light);font-style:normal;margin-top:8px}
+.ref{font-family:var(--mono);font-size:.78rem;color:var(--gr)}
+.stack{display:grid;gap:20px}
+footer{padding:10px 0 40px;text-align:center;color:var(--gr);font-size:.8rem}
+.logs{font-family:var(--mono);font-size:.8rem}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Digital Minds</div>
+    <h1>CIPHER <span>LAB</span></h1>
+    <p class="tag">Voir une menace. Comprendre la défense.<br>Une simulation entièrement fictive : aucune cible réelle, aucune instruction d'intrusion.</p>
+    <ol class="loop" aria-label="Boucle d'interaction">
+      <li id="l1">Observe</li><li id="l2">Modifie</li><li id="l3">Rejoue</li><li id="l4">Comprends</li>
+    </ol>
+  </header>
+  <nav class="sc" id="nav" aria-label="Scénarios"></nav>
+  <p class="path" id="path"></p>
+  <main>
+    <aside class="card" aria-label="Système CIPHER DEMO">
+      <h2>CIPHER DEMO · huit couches</h2>
+      <div class="layers" id="layers"></div>
+      <div class="legend">
+        <h3>État final</h3>
+        <span><i class="dot" style="background:var(--g)"></i>Protégé : l'actif n'a pas été atteint</span>
+        <span><i class="dot" style="border:1px dashed var(--r)"></i>Exposé : une faiblesse reste ouverte, sans dommage pour l'instant</span>
+        <span><i class="dot" style="background:var(--r)"></i>Compromis : l'actif a été atteint</span>
+        <h3>Détection</h3>
+        <span><i class="dot" style="border:1px dashed var(--r)"></i>Non détecté : personne ne le sait</span>
+        <span><i class="dot" style="border:1px dashed var(--g-light)"></i>Détecté tardivement</span>
+        <span><i class="dot" style="border:1px solid var(--g-light)"></i>Détecté rapidement</span>
+        <p>La détection est une information à part : un événement peut être vu sans avoir été empêché, et un système peut rester protégé tout en voyant la tentative. Une meilleure configuration réduit le risque ; elle ne rend jamais le système invincible.</p>
+      </div>
+    </aside>
+    <div class="stack">
+      <section class="card" aria-labelledby="sctitle">
+        <div class="kick" id="sckick"></div>
+        <h2 class="sc-title" id="sctitle" style="text-transform:none;letter-spacing:0;color:var(--tx);font-size:1.5rem"></h2>
+        <p class="sc-q" id="scq"></p>
+        <p class="noquiz">Il n'y a rien à réussir ici. Change la configuration et observe ce qu'elle produit.</p>
+        <fieldset id="opts"><legend id="pl"></legend></fieldset>
+        <button class="go" id="go" type="button">Rejouer avec cette configuration</button>
+      </section>
+      <section class="card" aria-live="polite" aria-labelledby="obs">
+        <h2 id="obs">Ce que tu observes</h2>
+        <ol class="tl" id="tl"></ol>
+        <div class="out hide" id="out">
+          <div class="verdict"><span class="badge" id="badge"></span><span class="badge" id="badge2"></span></div>
+          <div class="lesson" id="lesson"></div>
+          <div class="ref" id="ref"></div>
+        </div>
+      </section>
+      <section class="card hide" id="cmpcard" aria-labelledby="cmph">
+        <h2 id="cmph">Comparer deux lectures</h2>
+        <div class="cmp" id="cmp"></div>
+      </section>
+    </div>
+  </main>
+  <footer>CIPHER LAB accompagne DIGITAL MINDS 05 — CIPHER. Le livre se comprend sans lui.</footer>
+</div>
+<script>
+(function(){
+"use strict";
+var LAYERS=["Utilisateur","Identité","Accès","Application","Données","API","Services","Infrastructure"];
+var STATES={protege:"Protégé",expose:"Exposé",compromis:"Compromis"};
+var DET=["Aucune","Tardive","Rapide"];
+function detLabel(o){return(o.st==="protege"&&o.dn>0)?(o.dl||"Tentative détectée"):DET[o.dn]}
+var PATH=[["Identité",1],["Droits",2],["Zero Trust",8],["Configuration",3],["Composants",5],["Données",4],["Détection",6],["Incident",7]];
+var KEYS=["Actif concerné","Point d'entrée","Événement","Contrôle","Décision","Signal","Détection","Réponse","Conséquence"];
+
+var SC=[
+{ch:"Chapitres 5 et 7",t:"Identifiants valides, mauvaise personne",q:"Que se passe-t-il quand quelqu'un d'autre présente les bonnes informations de connexion ?",
+ a:"Le compte de Sika, agente de support, qui peut consulter les profils d'élèves.",e:1,
+ pe:"La page de connexion reçoit l'identifiant et le mot de passe de Sika, depuis un appareil et un pays inhabituels.",
+ v:"Une session s'ouvre au nom de Sika.",pl:"Méthode de connexion",
+ lc:"Une identité n'est pas un secret connu : c'est une preuve difficile à copier. Plus la preuve est liée à la personne et au vrai site, moins le vol d'une information suffit.",
+ qq:"Sur quelle preuve ce système croit-il que c'est bien Sika ?",
+ o:[
+ {l:"Mot de passe seul",h:"Une seule information est demandée.",
+  c:"Aucun second élément n'est demandé : le mot de passe est la seule preuve.",d:"Accès accordé. Le système ne sait pas distinguer Sika de quelqu'un qui connaît son mot de passe.",s:"Une ligne « connexion réussie » parmi des milliers d'autres.",t:"Non : rien n'indique que le contexte est inhabituel.",r:"Aucune : personne ne sait qu'il faut agir.",q:"Des profils d'élèves sont consultés pendant plusieurs jours.",st:"compromis",re:4,sp:false,dn:0},
+ {l:"Mot de passe + code par SMS",h:"Un code temporaire s'ajoute.",
+  c:"Un code est demandé, mais une personne trompée peut le donner à un faux site.",d:"Accès accordé après saisie du code.",s:"Un message « nouvel appareil » est envoyé à Sika.",t:"Oui, mais tard : Sika le lit le lendemain.",r:"Session fermée, mot de passe changé.",q:"Quelques profils ont été consultés avant la révocation.",st:"compromis",re:3,sp:false,dn:1},
+ {l:"Passkey",h:"La preuve est liée au service concerné.",
+  c:"Une passkey correctement mise en œuvre lie cryptographiquement la preuve au service concerné. Elle est donc conçue pour résister au phishing et ne fonctionne pas comme un simple secret que l'on peut recopier sur un faux site.",d:"Accès refusé : l'appareil de Sika n'est pas présent.",s:"Tentative refusée, enregistrée avec son contexte.",t:"Oui : la tentative apparaît dans le suivi des connexions.",r:"Aucune urgence : le mot de passe volé ne sert à rien ici.",q:"Aucune donnée touchée.",st:"protege",re:1,sp:true,dn:2}]},
+
+{ch:"Chapitre 8",t:"Un compte qui peut tout",q:"Si un compte est détourné, jusqu'où l'événement peut-il aller ?",
+ a:"Les dossiers d'élèves et les paiements.",e:3,
+ pe:"L'application reçoit des demandes depuis le compte d'un bénévole de modération, utilisé par quelqu'un d'autre.",
+ v:"Le compte tente de parcourir des dossiers et des paiements.",pl:"Droits du compte",
+ lc:"Un compte détourné ne peut faire que ce que ses droits permettent. Le moindre privilège n'empêche pas le vol : il rend ses conséquences petites.",
+ qq:"Ce compte a-t-il vraiment besoin de tout ce qu'il peut faire ?",
+ o:[
+ {l:"Administrateur complet",h:"Tout est permis, « pour aller plus vite ».",
+  c:"Aucune limite : lecture, modification, suppression et paiements sont autorisés.",d:"Toutes les demandes sont acceptées.",s:"Les actions ressemblent à celles d'un administrateur normal.",t:"Non : rien ne se distingue.",r:"Aucune.",q:"Dossiers et paiements sont exposés et modifiables.",st:"compromis",re:6,sp:false,dn:0},
+ {l:"Rôle « support » large",h:"Lecture de tous les dossiers, pas de paiements.",
+  c:"Les paiements sont refusés, mais tous les dossiers restent lisibles.",d:"Lecture accordée, paiements refusés.",s:"Des lectures nombreuses, sans alerte associée.",t:"Non : elles passent pour du travail de support.",r:"Aucune pour l'instant.",q:"Le dommage reste limité, mais la porte des dossiers est grande ouverte.",st:"expose",re:4,sp:false,dn:0},
+ {l:"Moindre privilège",h:"Sa file de modération, rien d'autre.",
+  c:"Le compte ne voit que sa file de modération : chaque sortie est refusée.",d:"Les demandes hors de sa file sont refusées.",s:"Des refus répétés, enregistrés.",t:"Oui : une série de refus est inhabituelle.",r:"Compte vérifié, accès coupé par précaution.",q:"Aucun dossier hors de sa file n'est touché.",st:"protege",re:3,sp:true,dn:2}]},
+
+{ch:"Chapitre 13",t:"Un stockage qui s'ouvre tout seul",q:"Un réglage peut-il exposer des données sans qu'une ligne de code change ?",
+ a:"Un export de fichiers contenant noms et adresses d'élèves.",e:6,
+ pe:"Le stockage cloud reçoit une demande de lecture pour l'adresse de l'export, venue d'un inconnu.",
+ v:"Un export vient d'être déposé, puis une lecture est demandée.",pl:"Accès au stockage",
+ lc:"Un système sûr peut devenir exposé par un simple réglage. La configuration est une surface de risque à vérifier régulièrement, pas une fois pour toutes.",
+ qq:"Qui a vérifié ce réglage, et quand ?",
+ o:[
+ {l:"Public par défaut",h:"L'adresse suffit pour lire.",
+  c:"Aucun contrôle : connaître l'adresse suffit.",d:"Lecture accordée à l'inconnu.",s:"Aucun.",t:"Non.",r:"Aucune.",q:"L'export est téléchargé, puis l'adresse circule.",st:"compromis",re:7,sp:false,dn:0},
+ {l:"Lien permanent partagé",h:"Un lien sans date de fin.",
+  c:"Le lien fonctionne tant qu'on ne le supprime pas, même s'il a été transmis.",d:"Lecture accordée via l'ancien lien.",s:"Un volume de téléchargements inhabituel.",t:"Oui : une alerte de volume se déclenche.",r:"Lien révoqué, accès vérifié.",q:"Un téléchargement a eu lieu avant la révocation.",st:"compromis",re:7,sp:false,dn:2},
+ {l:"Privé + contrôle automatique",h:"Accès par identité, réglages vérifiés chaque jour.",
+  c:"Le stockage exige une identité autorisée, et un contrôle automatique vérifie les réglages chaque jour.",d:"Lecture refusée.",s:"Un refus enregistré.",t:"Oui : le refus apparaît dans le suivi.",r:"Aucune action nécessaire.",q:"Aucune donnée touchée.",st:"protege",re:6,sp:true,dn:2}]},
+
+{ch:"Chapitre 15",t:"Une copie perdue",q:"Que reste-t-il de la protection quand la donnée sort du système ?",
+ a:"Une copie des profils, notes et adresses, sauvegardée sur un ordinateur portable.",e:4,
+ pe:"L'ordinateur portable contenant la sauvegarde est égaré ; le fichier se retrouve hors du système.",
+ v:"Quelqu'un ouvre le fichier de sauvegarde.",pl:"Protection de la copie",
+ lc:"Chiffrer ne suffit pas : tout dépend de l'endroit où se trouve la clé. Une clé rangée à côté du fichier est un coffre dont la clé est posée dessus.",
+ qq:"Où est la clé, et qui peut y accéder ?",
+ o:[
+ {l:"En clair",h:"Le fichier n'est pas chiffré.",
+  c:"Aucune protection sur la copie.",d:"Le fichier est lisible par quiconque l'ouvre.",s:"Aucun : la perte ne produit aucune trace.",t:"Non.",r:"Aucune mesure possible.",q:"Toutes les données de la copie sont lisibles.",st:"compromis",re:4,sp:false,dn:0},
+ {l:"Chiffrée, clé à côté",h:"La clé est dans le même dossier.",
+  c:"Le fichier est chiffré, mais la clé est rangée avec lui.",d:"Lisible : qui trouve le fichier trouve la clé.",s:"Aucun.",t:"Non.",r:"Aucune mesure possible.",q:"Même résultat qu'en clair : la protection n'était qu'apparente.",st:"compromis",re:4,sp:false,dn:0},
+ {l:"Chiffrée, clé séparée",h:"La clé est gardée dans un coffre à accès contrôlé.",
+  c:"Le fichier est illisible sans la clé, conservée ailleurs avec un accès contrôlé.",d:"Fichier illisible.",s:"Aucune tentative d'accès à la clé.",t:"L'équipe est prévenue de la perte.",r:"Clé renouvelée par précaution.",q:"Aucune donnée lisible.",st:"protege",re:4,sp:true,dn:2,dl:"Perte signalée rapidement"}]},
+
+{ch:"Chapitre 14",t:"Un composant emprunté",q:"Comment sait-on si un défaut annoncé ailleurs nous concerne ?",
+ a:"L'application et les services qui l'utilisent.",e:3,
+ pe:"Un avis public annonce un défaut grave dans un composant logiciel que CIPHER DEMO pourrait utiliser.",
+ v:"L'avis est publié ; reste à savoir si CIPHER DEMO est concernée.",pl:"Gestion des composants",
+ lc:"On ne protège pas ce qu'on ne connaît pas. Un inventaire à jour transforme une inquiétude de plusieurs jours en une vérification de quelques minutes.",
+ qq:"Sait-on exactement ce que contient notre logiciel ?",
+ o:[
+ {l:"Aucun inventaire",h:"Personne ne sait ce que contient l'application.",
+  c:"Aucune liste des composants utilisés.",d:"Impossible de dire si CIPHER DEMO est concernée.",s:"L'avis passe inaperçu.",t:"Non.",r:"Recherche manuelle étalée sur plusieurs jours.",q:"Le système reste vulnérable sans que l'équipe le sache.",st:"expose",re:6,sp:false,dn:0},
+ {l:"Liste à la main, ancienne",h:"Une liste existe mais date de plusieurs mois.",
+  c:"La liste existe, mais elle n'a pas été mise à jour depuis des mois.",d:"Réponse incertaine : le composant est retrouvé après vérification manuelle.",s:"L'équipe lit l'avis.",t:"Oui, au bout de deux jours.",r:"Mise à jour appliquée.",q:"Deux jours d'exposition.",st:"expose",re:4,sp:false,dn:1},
+ {l:"Inventaire automatique + vérification",h:"Liste générée à chaque version, composants vérifiés.",
+  c:"L'inventaire est généré à chaque version et l'intégrité des composants est vérifiée avant leur entrée.",d:"Concernée ou non : réponse en quelques minutes.",s:"L'inventaire signale une correspondance avec l'avis.",t:"Oui, dans l'heure.",r:"Correction testée puis déployée.",q:"Exposition très courte.",st:"protege",re:3,sp:true,dn:2,dl:"Rapide"}]},
+
+{ch:"Chapitres 18 et 19",t:"02:14, un export inhabituel",q:"Comment voit-on qu'une activité n'est pas seulement nouvelle, mais anormale ?",
+ a:"Les fiches d'élèves.",e:1,
+ pe:"Un compte lance un export dix fois plus gros que d'habitude, à 02:14.",
+ v:"L'export démarre.",pl:"Surveillance",
+ lc:"Une trace que personne ne lit ne protège rien. Un signal n'a de valeur que s'il parvient à quelqu'un qui peut décider.",
+ qq:"Qui verrait cet événement, et à quelle heure ?",
+ o:[
+ {l:"Aucun journal exploitable",h:"Rien n'est enregistré sur les exports.",
+  c:"Rien n'est enregistré sur ce qui est exporté.",d:"L'export aboutit sans condition.",s:"Aucun.",t:"Non : l'événement n'est découvert qu'après une plainte.",r:"Reconstitution impossible : on ne sait pas ce qui est parti.",q:"Impact inconnu, confiance des familles entamée.",st:"compromis",re:4,sp:false,dn:0},
+ {l:"Journaux, mais personne ne les lit",h:"Les traces existent, sans alerte.",
+  c:"Chaque export est enregistré, mais aucune alerte n'existe.",d:"L'export aboutit.",s:"Les lignes existent dans les journaux.",t:"Trois jours plus tard, par hasard.",r:"Enquête possible : la chronologie est reconstituée.",q:"Impact connu, mais tard.",st:"compromis",re:4,sp:false,dn:1},
+ {l:"Journaux + alerte sur le comportement",h:"Une alerte se déclenche au-delà de l'habituel.",
+  c:"Chaque export est enregistré et une alerte se déclenche au-delà du comportement habituel.",d:"L'export est ralenti et soumis à validation.",s:"Alerte envoyée à la personne d'astreinte.",t:"Oui, en quelques minutes.",r:"Compte suspendu, vérification.",q:"L'export est arrêté avant sa livraison. Il reste à comprendre pourquoi ce compte a été utilisé.",st:"protege",re:3,sp:true,dn:2}]},
+
+{ch:"Chapitres 20 et 21",t:"L'alerte est vraie",q:"Que fait l'équipe dans les premières heures ?",
+ a:"Le compte administrateur et tout ce qu'il peut atteindre.",e:1,
+ pe:"Une alerte est confirmée : le compte administrateur est utilisé par quelqu'un d'autre.",
+ v:"L'équipe doit décider quoi faire.",pl:"Préparation à l'incident",
+ lc:"Pendant un incident, on ne devient pas meilleur : on exécute ce qu'on a préparé. Rôles, décisions et sauvegardes testées se décident avant.",
+ qq:"Qui décide, et sur quoi s'appuie-t-on pour restaurer ?",
+ o:[
+ {l:"Aucun plan",h:"Chacun improvise.",
+  c:"Personne ne sait qui décide ni quoi faire en premier.",d:"Chacun agit de son côté ; certaines traces sont effacées.",s:"Des messages dispersés.",t:"L'incident est connu mais mal compris.",r:"Plusieurs heures perdues avant toute action.",q:"L'accès reste ouvert pendant des heures ; des preuves sont perdues.",st:"compromis",re:6,sp:false,dn:1},
+ {l:"Plan écrit, jamais testé",h:"Un document existe, personne ne l'a répété.",
+  c:"Un plan existe, mais plusieurs étapes sont obsolètes.",d:"On cherche le plan, on hésite sur certaines étapes.",s:"Alerte reçue et comprise.",t:"Oui.",r:"Compte désactivé après une heure ; restauration lente.",q:"Dommage limité, récupération longue.",st:"compromis",re:4,sp:false,dn:2},
+ {l:"Plan testé, rôles clairs, sauvegardes vérifiées",h:"Tout a été répété avant.",
+  c:"Les rôles sont connus, le plan a été répété, les sauvegardes sont restaurables.",d:"La responsable décide ; le compte est isolé en quelques minutes.",s:"Alerte reçue et comprise tout de suite.",t:"Oui, immédiate.",r:"Contenir, préserver les preuves, informer, restaurer depuis une sauvegarde vérifiée.",q:"Service rétabli le jour même ; leçons consignées.",st:"compromis",re:2,sp:true,dn:2}]},
+
+{ch:"Chapitre 10",t:"La confiance par le Wi-Fi",q:"Être sur le réseau de l'équipe suffit-il à justifier un accès ?",
+ a:"L'outil d'administration de CIPHER DEMO.",e:2,
+ pe:"Un appareil connecté au Wi-Fi de l'équipe demande l'accès à l'outil d'administration.",
+ v:"La demande arrive depuis le réseau interne.",pl:"Règle d'accès",
+ lc:"Le lieu d'où l'on se connecte n'est pas une preuve. Zero Trust remplace « tu es dans le réseau » par « montre qui tu es, depuis quel appareil, et pour quoi faire ».",
+ qq:"Sur quoi cette règle se fonde-t-elle, au juste ?",
+ o:[
+ {l:"Dans le réseau = de confiance",h:"Être sur le Wi-Fi suffit.",
+  c:"Aucune vérification : l'emplacement tient lieu de preuve.",d:"Accès accordé.",s:"Aucun.",t:"Non.",r:"Aucune.",q:"Un appareil inconnu administre le système.",st:"compromis",re:6,sp:false,dn:0},
+ {l:"VPN puis accès large",h:"Un passage obligatoire, puis tout est ouvert.",
+  c:"Il faut passer par le VPN, mais une fois dedans, tous les outils sont ouverts.",d:"Accès large accordé.",s:"La connexion au VPN est enregistrée.",t:"Non : rien ne signale que l'appareil est inconnu.",r:"Aucune.",q:"Un appareil non vérifié atteint plusieurs outils.",st:"expose",re:4,sp:false,dn:0},
+ {l:"Vérification à chaque demande",h:"Identité, appareil et contexte vérifiés.",
+  c:"Chaque demande est vérifiée : identité, état de l'appareil, contexte, droit précis.",d:"Refus : l'appareil n'est pas géré par l'équipe.",s:"Un refus enregistré avec son contexte.",t:"Oui.",r:"Aucune urgence.",q:"Aucun outil atteint.",st:"protege",re:2,sp:true,dn:2}]}
+];
+
+var $=function(i){return document.getElementById(i)};
+var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var cur=0,pend=0,hist=SC.map(function(){return[]}),timers=[],played=false;
+
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+function stage(n){["l1","l2","l3","l4"].forEach(function(id,i){$(id).className=(i<n)?"on":""})}
+function clearT(){timers.forEach(clearTimeout);timers=[]}
+
+function buildPath(){
+  var h='<span>Parcours conseillé (facultatif) :</span>';
+  PATH.forEach(function(p,i){h+=(i?' <i>→</i> ':' ')+'<a href="#scenario-'+p[1]+'" data-n="'+p[1]+'">'+p[0]+'</a>'});
+  $("path").innerHTML=h;
+}
+function markPath(i){[].forEach.call($("path").querySelectorAll("a"),function(a){a.setAttribute("aria-current",(+a.dataset.n===i+1)?"true":"false")})}
+function buildNav(){
+  var h="";SC.forEach(function(s,i){h+='<button type="button" data-i="'+i+'"><b>'+(i+1)+'</b>'+esc(s.t)+'</button>'});
+  $("nav").innerHTML=h;
+  $("nav").addEventListener("click",function(e){var b=e.target.closest("button");if(b)select(+b.dataset.i,true)});
+}
+function paintLayers(sc,out,done){
+  var h="";
+  LAYERS.forEach(function(n,i){
+    var c="layer",tag="";
+    if(i===sc.e){c+=" entry";tag="entrée"}
+    if(done&&out){
+      if(!out.sp){ if(i>=sc.e&&i<=out.re){c="layer hit";tag="touché"} }
+      else{
+        if(i>=sc.e&&i<out.re){c="layer pass";tag="traversé"}
+        if(i===out.re){c="layer stop";tag=(out.st==="compromis")?"contenu":"arrêt"}
+      }
+    }
+    var seen=(done&&out&&out.dn>0&&i===out.re)?'<span class="seen"></span>':"";
+    h+='<div class="'+c+'"><span>'+n+'</span><small>'+seen+tag+'</small></div>';
+  });
+  $("layers").innerHTML=h;
+}
+function renderOpts(sc){
+  var f=$("opts"),h='<legend id="pl">Configuration · '+esc(sc.pl)+'</legend>';
+  sc.o.forEach(function(o,i){
+    h+='<label class="opt'+(i===pend?" sel":"")+'"><input type="radio" name="opt" value="'+i+'"'+(i===pend?" checked":"")+'><b>'+esc(o.l)+'</b><small>'+esc(o.h)+'</small></label>';
+  });
+  f.innerHTML=h;
+}
+function select(i,push){
+  clearT();cur=i;pend=0;played=false;
+  var sc=SC[i];
+  [].forEach.call($("nav").children,function(b,k){b.setAttribute("aria-current",k===i?"true":"false")});
+  markPath(i);
+  $("sckick").textContent="SCÉNARIO "+(i+1)+" · "+sc.ch;
+  $("sctitle").textContent=sc.t;$("scq").textContent=sc.q;
+  renderOpts(sc);
+  hist[i]=[];
+  if(push&&location.hash!=="#scenario-"+(i+1)){history.replaceState(null,"","#scenario-"+(i+1))}
+  play();
+}
+function play(){
+  clearT();
+  var sc=SC[cur],out=sc.o[pend],n=hist[cur].length+1;
+  hist[cur].push({p:pend,o:out});
+  stage(n===1?1:3);
+  paintLayers(sc,out,false);
+  $("out").classList.add("hide");
+  var rows=[
+    [KEYS[0],sc.a,""],[KEYS[1],LAYERS[sc.e]+" — "+sc.pe,""],[KEYS[2],sc.v,""],
+    [KEYS[3],out.c,"ctrl"],[KEYS[4],out.d,out.st==="protege"?"ctrl":"bad"],[KEYS[5],out.s,""],
+    [KEYS[6],out.t,out.dn>0?"ctrl":"bad"],[KEYS[7],out.r,""],[KEYS[8],out.q,out.st==="protege"?"ctrl":"bad"]];
+  var tl=$("tl");tl.innerHTML="";
+  var lis=rows.map(function(r){
+    var li=document.createElement("li");
+    if(r[2])li.className=r[2];
+    li.innerHTML='<span class="k">'+esc(r[0])+'</span><span class="t">'+esc(r[1])+'</span>';
+    tl.appendChild(li);return li;});
+  var step=reduce?0:520;
+  lis.forEach(function(li,i){
+    timers.push(setTimeout(function(){li.classList.add("show")},i*step));
+  });
+  timers.push(setTimeout(function(){finish(sc,out,n)},rows.length*step+(reduce?0:150)));
+  $("go").disabled=true;
+  if(reduce){lis.forEach(function(li){li.classList.add("show")})}
+}
+function finish(sc,out,n){
+  paintLayers(sc,out,true);
+  var b=$("badge");b.className="badge "+out.st;b.innerHTML="<small>État</small> "+STATES[out.st];
+  var b2=$("badge2");b2.className="badge d"+out.dn;b2.innerHTML="<small>Détection</small> "+esc(detLabel(out));
+  var extra=(out.st==="protege")?'<p class="ref">« Protégé » décrit cette scène, pas le système entier : une meilleure défense réduit le risque, elle ne le supprime pas.</p>':"";
+  $("lesson").innerHTML="<p>"+esc(sc.lc)+"</p><em>À te demander : "+esc(sc.qq)+"</em>"+extra;
+  $("ref").textContent="Pour aller plus loin : "+sc.ch+" de CIPHER";
+  $("out").classList.remove("hide");
+  $("go").disabled=false;
+  stage(4);
+  cmp();
+}
+function cmp(){
+  var h=hist[cur],card=$("cmpcard");
+  if(h.length<2){card.classList.add("hide");return}
+  var a=h[h.length-2],b=h[h.length-1],sc=SC[cur];
+  function col(t,x){return '<div><h3>'+t+'</h3><p><b>Configuration :</b> '+esc(sc.o[x.p].l)+'</p><p><b>État :</b> '+STATES[x.o.st]+'</p><p><b>Détection :</b> '+esc(detLabel(x.o))+' — '+esc(x.o.t)+'</p><p><b>Conséquence :</b> '+esc(x.o.q)+'</p></div>'}
+  $("cmp").innerHTML=col("Lecture précédente",a)+col("Cette lecture",b);
+  card.classList.remove("hide");
+}
+$("opts").addEventListener("change",function(e){
+  if(e.target.name!=="opt")return;
+  pend=+e.target.value;
+  [].forEach.call($("opts").querySelectorAll(".opt"),function(l,i){l.classList.toggle("sel",i===pend)});
+  stage(2);
+});
+$("go").addEventListener("click",play);
+function fromHash(){
+  var m=/^#scenario-(\d+)$/.exec(location.hash);
+  var i=m?Math.min(Math.max(+m[1],1),SC.length)-1:0;
+  select(i,false);
+}
+window.addEventListener("hashchange",fromHash);
+buildNav();buildPath();fromHash();
+})();
+</script>
+</body>
+</html>
